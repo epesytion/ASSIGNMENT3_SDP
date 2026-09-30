@@ -1,0 +1,32 @@
+digraph G {
+  rankdir=BT; nodesep=0.5; ranksep=0.7;
+  node [shape=record, fontname="Helvetica", fontsize=10, style=filled, fillcolor="#FFFFFF"];
+  edge [fontname="Helvetica", fontsize=9];
+
+  SaveManager [label="{\{abstract\}\nSaveManager\n(Abstraction)|# storage: SaveStorage\l}", fillcolor="#DAE8FC"];
+  Manual [label="{ManualSaveManager\n(Refined Abstraction)|+ save(name, gameData): SaveResult\l+ load(name): SaveResult\l}", fillcolor="#DAE8FC"];
+  Auto [label="{AutoSaveManager\n(Refined Abstraction)|+ autoSave(gameData): SaveResult\l+ loadLatest(): SaveResult\l}", fillcolor="#DAE8FC"];
+
+  Storage [label="{\<\<interface\>\>\nSaveStorage\n(Implementor)|+ save(slot, gameData): SaveResult\l+ load(slot): SaveResult\l}", fillcolor="#FFE6CC"];
+  Hdd [label="{HardDriveStorage\n(Concrete Implementor)}", fillcolor="#FFE6CC"];
+  Mem [label="{MemoryStorage\n(Concrete Implementor)}", fillcolor="#FFE6CC"];
+  Adapter [label="{CloudVaultStorageAdapter\n(Adapter + Concrete Implementor)|- client: CloudVaultClient\l- account: String\l|+ save(slot, gameData): SaveResult\l+ load(slot): SaveResult\l}", fillcolor="#D5E8D4"];
+  Client [label="{CloudVaultClient\n\<\<third-party, unmodified\>\>\n(Adaptee)|+ OK, QUOTA_EXCEEDED, NETWORK_DOWN: int\l|+ putBlob(payload: byte[], key: String): int\l+ getBlob(key: String): byte[]\l}", fillcolor="#F8CECC"];
+  Result [label="{SaveResult\n\<\<record\>\>|ok: boolean\lmessage: String\l|+ success(message)\l+ failure(message)\l}", fillcolor="#F5F5F5"];
+  Registry [label="{StorageRegistry\n(dynamic implementor selection)|- factories: Map\<String, Function\>\l|+ register(scheme, factory)\l+ open(location): Optional\<SaveStorage\>\l}", fillcolor="#E1D5E7"];
+  Main [label="{Main\n(Client)|+ main(args)\l}", fillcolor="#F5F5F5"];
+
+  Manual -> SaveManager [arrowhead=onormal];
+  Auto -> SaveManager [arrowhead=onormal];
+  SaveManager -> Storage [arrowhead=vee, arrowtail=odiamond, dir=both, label=" bridge: storage", color="#B85C00", fontcolor="#B85C00", penwidth=1.8];
+  Hdd -> Storage [arrowhead=onormal, style=dashed];
+  Mem -> Storage [arrowhead=onormal, style=dashed];
+  Adapter -> Storage [arrowhead=onormal, style=dashed];
+  Adapter -> Client [arrowhead=vee, arrowtail=odiamond, dir=both, label=" adaptee", color="#2E7D32", fontcolor="#2E7D32", penwidth=1.8];
+  Storage -> Result [arrowhead=vee, style=dashed, label=" returns"];
+  Adapter -> Result [arrowhead=vee, style=dashed, label=" converts codes / null to"];
+  Registry -> Storage [arrowhead=vee, style=dashed, label=" creates"];
+  Main -> Registry [arrowhead=vee, style=dashed, label=" registers hdd / ram / cloud"];
+  Main -> Adapter [arrowhead=vee, style=dashed, label=" creates (cloud factory)"];
+  Main -> SaveManager [arrowhead=vee, style=dashed, label=" uses"];
+}
